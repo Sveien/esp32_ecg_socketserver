@@ -1,0 +1,58 @@
+<!DOCTYPE HTML><html>
+<head>
+    <!-- Window size scales based on user device -->
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <!-- Library for highcharts retrieved -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body>
+    <!-- This is the container where the chart is placed -->
+    <div id="chart-ecg" class="container"></div> 
+</body>
+<script>
+    // https://api.highcharts.com/highcharts/ to learn more
+    let ecg_chart = new Highcharts.Chart({ 
+        chart: {
+            renderTo : 'chart-ecg' // Notice: this is the container ID above
+        },
+        title: {
+            text: 'ECG'
+        },
+        series: [{
+            showInLegend: false,
+            data: []
+        }],
+        plotOptions: {
+            series: {
+                color: '#059e8a',
+                marker: {
+                    enabled: false
+                }
+            }
+        },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                second: '%H:%M:%S'
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Voltage [V]'
+            }
+        }
+    });
+    // Retrieves IP you entered in address bar and opens a WebSocket
+    let websocket = new WebSocket('ws://'+window.location.hostname+':81/'); 
+    // This function runs everytime a message is received
+    websocket.onmessage = function(event) {
+        let x = (new Date()).getTime();
+        let y = JSON.parse(event.data).ECG;
+        if(ecg_chart.series[0].data.length > 450) { // Limit amount of data visible on chart
+            ecg_chart.series[0].addPoint([x, y], true, true, false);
+        } else {
+            ecg_chart.series[0].addPoint([x, y], true, false, false);
+        }
+    }
+</script>
+</html>
